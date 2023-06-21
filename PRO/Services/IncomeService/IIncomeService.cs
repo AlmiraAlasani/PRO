@@ -6,6 +6,7 @@ namespace PRO.Services.IncomeService
     {
         Task<IEnumerable<IncomeDTO>> GetAllIncomesAsync();
         Task<IncomeDTO> GetIncomeByIdAsync(int id);
+        
         Task<IncomeDTO> CreateIncomeAsync(IncomeDTO incomeDto);
         Task UpdateIncomeAsync(int id, IncomeDTO incomeDto);
         Task DeleteIncomeAsync(int id);

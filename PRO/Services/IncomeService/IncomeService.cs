@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using PRO.DTOs;
 using PRO.Models;
 using PRO.Repositories;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Principal;
 
 namespace PRO.Services.IncomeService
@@ -10,11 +13,13 @@ namespace PRO.Services.IncomeService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public IncomeService(IUnitOfWork unitOfWork, IMapper mapper)
+        public IncomeService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<IEnumerable<IncomeDTO>> GetAllIncomesAsync()
@@ -36,10 +41,13 @@ namespace PRO.Services.IncomeService
                 var income = _mapper.Map<Income>(incomeDto);
                 _unitOfWork.IncomeRepository.AddIncomeAsync(income);
 
-                Account account = await _unitOfWork.AccountRepository.GetAccountByIdAsync(1);
+                // Get the current user's username from the JWT token
+                string username = _httpContextAccessor.HttpContext.User.Identity.Name;
+
+                Account account = await _unitOfWork.AccountRepository.GetAccountByEmail(username);
                 account.Balance += income.Amount;
                 _unitOfWork.AccountRepository.UpdateAccount(account);
-                
+
                 await _unitOfWork.SaveChangesAsync();
                 return _mapper.Map<IncomeDTO>(income);
             }
